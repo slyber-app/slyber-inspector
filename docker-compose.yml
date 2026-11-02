@@ -1,6 +1,6 @@
 services:
   slyber_test:
-    image: ghcr.io/slyber-app/slyber-test-server:latest
+    image: ghcr.io/slyber-app/slyber-inspector:latest
     container_name: slyber_test
     restart: unless-stopped
     ports:

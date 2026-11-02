@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="slyber-app/slyber-test-server"
+REPO="slyber-app/slyber-inspector"
 BIN_NAME="slyber_test"
 INSTALL_DIR="/usr/local/bin"
 LISTEN_ADDR="${LISTEN_ADDR:-0.0.0.0:8095}"
 VERSION="${VERSION:-latest}"
 
-echo "==> Installing Slyber Test Server..."
+echo "==> Installing Slyber Inspector..."
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
@@ -77,7 +77,7 @@ if [ "${OS}" = "linux" ] && command -v systemctl >/dev/null 2>&1 && [ "$(id -u)"
 
   cat >/etc/systemd/system/slyber_test.service <<EOF
 [Unit]
-Description=Slyber Test Server (WebRTC & TURN Visual Verification Suite)
+Description=Slyber Inspector (WebRTC & TURN Visual Verification Suite)
 After=network-online.target
 Wants=network-online.target
 

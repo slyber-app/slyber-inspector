@@ -1,4 +1,4 @@
-# Slyber Test Server
+# Slyber Inspector
 
 Unified visual testing, stream inspection, and load verification environment for **Slyber** real time communication infrastructure modules.
 
@@ -23,7 +23,7 @@ Run the visual test environment in a single command:
       --name slyber_test \
       --restart unless-stopped \
       -p 8095:8095 \
-      ghcr.io/slyber-app/slyber-test-server:latest
+      ghcr.io/slyber-app/slyber-inspector:latest
 
 Open `http://127.0.0.1:8095` (or `http://<SERVER_IP>:8095`) in your browser.
 
@@ -38,7 +38,7 @@ Verify container health and version:
 
 Download `docker-compose.yml` and start the service:
 
-    curl -fsSLO https://raw.githubusercontent.com/slyber-app/slyber-test-server/main/docker-compose.yml
+    curl -fsSLO https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/docker-compose.yml
     sudo docker compose up -d
 
 ---
@@ -47,7 +47,7 @@ Download `docker-compose.yml` and start the service:
 
 Install the static binary (`linux-amd64`, `linux-arm64`, `darwin-arm64`, or `darwin-amd64`), verify its SHA256 checksum, and automatically configure the `systemd` service on Linux:
 
-    curl -fsSL https://raw.githubusercontent.com/slyber-app/slyber-test-server/main/install.sh | sudo bash
+    curl -fsSL https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/install.sh | sudo bash
 
 Manage the background service on Linux:
 
@@ -67,19 +67,19 @@ Download the prebuilt static binary for your platform from the latest release:
 
 Linux (x86_64 / amd64):
 
-    curl -fsSL https://github.com/slyber-app/slyber-test-server/releases/latest/download/slyber_test-linux-amd64 -o slyber_test
+    curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-amd64 -o slyber_test
     chmod +x slyber_test
     ./slyber_test -addr 0.0.0.0:8095
 
 Linux (ARM64 / aarch64):
 
-    curl -fsSL https://github.com/slyber-app/slyber-test-server/releases/latest/download/slyber_test-linux-arm64 -o slyber_test
+    curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-arm64 -o slyber_test
     chmod +x slyber_test
     ./slyber_test -addr 0.0.0.0:8095
 
 macOS (Apple Silicon M1/M2/M3/M4):
 
-    curl -fsSL https://github.com/slyber-app/slyber-test-server/releases/latest/download/slyber_test-darwin-arm64 -o slyber_test
+    curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-darwin-arm64 -o slyber_test
     chmod +x slyber_test
     ./slyber_test -addr 127.0.0.1:8095
 
