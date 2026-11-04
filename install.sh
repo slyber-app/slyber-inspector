@@ -64,15 +64,55 @@ echo "==> Verifying SHA256 checksum..."
 )
 echo "[OK] Checksum verified."
 
+if [ "${OS}" = "linux" ] && command -v systemctl >/dev/null 2>&1 && [ "$(id -u)" -eq 0 ]; then
+  systemctl stop slyber_test 2>/dev/null || true
+fi
+
 chmod +x "${TMP_DIR}/${ARTIFACT}"
 mv "${TMP_DIR}/${ARTIFACT}" "${INSTALL_DIR}/${BIN_NAME}"
 
 INSTALLED_VER="$("${INSTALL_DIR}/${BIN_NAME}" --version)"
 echo "[OK] Installed ${INSTALLED_VER} to ${INSTALL_DIR}/${BIN_NAME}"
 
+HOST_PART="${LISTEN_ADDR%:*}"
+PORT="${LISTEN_ADDR##*:}"
+
+is_port_busy() {
+  local p="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltn "sport = :${p}" 2>/dev/null | grep -q ":${p}\b"
+  elif command -v lsof >/dev/null 2>&1; then
+    lsof -iTCP:"${p}" -sTCP:LISTEN >/dev/null 2>&1
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -ltn 2>/dev/null | awk '{print $4}' | grep -q "[:.]${p}$"
+  else
+    return 1
+  fi
+}
+
+if is_port_busy "${PORT}"; then
+  OLD_PORT="${PORT}"
+  while is_port_busy "${PORT}"; do
+    PORT=$((PORT + 1))
+  done
+  LISTEN_ADDR="${HOST_PART}:${PORT}"
+  echo "[WARN] Port ${OLD_PORT} is already in use by another application. Switched to free port ${PORT}."
+fi
+
+PUBLIC_IP="$(curl -fsSL4 --max-time 2 https://api.ipify.org 2>/dev/null || curl -fsSL4 --max-time 2 https://ifconfig.me 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")"
+
 if [ "${OS}" = "linux" ] && command -v systemctl >/dev/null 2>&1 && [ "$(id -u)" -eq 0 ]; then
   if ! id -u slyber_test >/dev/null 2>&1; then
     useradd --system --no-create-home --shell /usr/sbin/nologin slyber_test || true
+  fi
+
+  if command -v ufw >/dev/null 2>&1 && ufw status | grep -q "Status: active"; then
+    echo "==> Opening port ${PORT}/tcp in UFW..."
+    ufw allow "${PORT}/tcp" >/dev/null 2>&1 || true
+  elif command -v firewall-cmd >/dev/null 2>&1 && systemctl is-active --quiet firewalld; then
+    echo "==> Opening port ${PORT}/tcp in firewalld..."
+    firewall-cmd --permanent --add-port="${PORT}/tcp" >/dev/null 2>&1 || true
+    firewall-cmd --reload >/dev/null 2>&1 || true
   fi
 
   cat >/etc/systemd/system/slyber_test.service <<EOF
@@ -96,8 +136,21 @@ WantedBy=multi-user.target
 EOF
 
   systemctl daemon-reload
-  systemctl enable --now slyber_test
-  echo "[OK] systemd service slyber_test started on http://${LISTEN_ADDR}"
+  systemctl enable slyber_test >/dev/null 2>&1
+  systemctl restart slyber_test
+  sleep 1
+
+  if systemctl is-active --quiet slyber_test; then
+    echo "--------------------------------------------------"
+    echo "[OK] Slyber Inspector is running!"
+    echo "  Web UI (Direct)     : http://${PUBLIC_IP}:${PORT}"
+    echo "  If blocked by cloud : ssh -N -L ${PORT}:127.0.0.1:${PORT} root@${PUBLIC_IP}"
+    echo "                        then open http://127.0.0.1:${PORT}"
+    echo "--------------------------------------------------"
+  else
+    echo "[ERROR] Service slyber_test failed to start. Check logs: journalctl -u slyber_test -n 20"
+    exit 1
+  fi
 else
-  echo "==> Run 'slyber_test -addr 127.0.0.1:8095' to start the visual test suite."
+  echo "==> Run 'slyber_test -addr 127.0.0.1:${PORT}' and open http://127.0.0.1:${PORT}"
 fi
