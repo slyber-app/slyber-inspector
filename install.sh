@@ -82,7 +82,7 @@ is_port_busy() {
   if command -v ss >/dev/null 2>&1; then
     ss -ltn "sport = :${p}" 2>/dev/null | grep -q ":${p}\b"
   elif command -v lsof >/dev/null 2>&1; then
-    lsof -iTCP:"${p}" -sTCP:LISTEN >/dev/null 2>&1
+    lsof -iTCP:"${p}" -sTCP:LISTEN -P -n >/dev/null 2>&1
   elif command -v netstat >/dev/null 2>&1; then
     netstat -ltn 2>/dev/null | awk '{print $4}' | grep -q "[:.]${p}$"
   else
@@ -99,7 +99,11 @@ if is_port_busy "${PORT}"; then
   echo "[WARN] Port ${OLD_PORT} is already in use by another application. Switched to free port ${PORT}."
 fi
 
-PUBLIC_IP="$(curl -fsSL4 --max-time 2 https://api.ipify.org 2>/dev/null || curl -fsSL4 --max-time 2 https://ifconfig.me 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")"
+if [ -n "${SSH_CONNECTION:-}" ]; then
+  PUBLIC_IP="$(curl -fsSL4 --max-time 2 https://api.ipify.org 2>/dev/null || curl -fsSL4 --max-time 2 https://ifconfig.me 2>/dev/null || hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")"
+else
+  PUBLIC_IP="127.0.0.1"
+fi
 
 if [ "${OS}" = "linux" ] && command -v systemctl >/dev/null 2>&1 && [ "$(id -u)" -eq 0 ]; then
   if ! id -u slyber_test >/dev/null 2>&1; then
@@ -144,8 +148,10 @@ EOF
     echo "--------------------------------------------------"
     echo "[OK] Slyber Inspector is running!"
     echo "  Web UI (Direct)     : http://${PUBLIC_IP}:${PORT}"
-    echo "  If blocked by cloud : ssh -N -L ${PORT}:127.0.0.1:${PORT} root@${PUBLIC_IP}"
-    echo "                        then open http://127.0.0.1:${PORT}"
+    if [ "${PUBLIC_IP}" != "127.0.0.1" ]; then
+      echo "  If blocked by cloud : ssh -N -L ${PORT}:127.0.0.1:${PORT} root@${PUBLIC_IP}"
+      echo "                        then open http://127.0.0.1:${PORT}"
+    fi
     echo "--------------------------------------------------"
   else
     echo "[ERROR] Service slyber_test failed to start. Check logs: journalctl -u slyber_test -n 20"
