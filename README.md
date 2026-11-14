@@ -37,7 +37,7 @@ Verify container health and version:
 
 ```bash
 sudo docker exec slyber_test slyber_test --version
-curl -s [http://127.0.0.1:8095/api/health](http://127.0.0.1:8095/api/health)
+curl -s http://127.0.0.1:8095/api/health
 ```
 
 ---
@@ -47,7 +47,7 @@ curl -s [http://127.0.0.1:8095/api/health](http://127.0.0.1:8095/api/health)
 Download `docker-compose.yml` and start the service:
 
 ```bash
-curl -fsSLO [https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/docker-compose.yml](https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/docker-compose.yml)
+curl -fsSLO https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/docker-compose.yml
 sudo docker compose up -d
 ```
 
@@ -58,7 +58,7 @@ sudo docker compose up -d
 Install the static binary (`linux-amd64`, `linux-arm64`, `darwin-arm64`, or `darwin-amd64`), verify its SHA256 checksum, and automatically configure the `systemd` service on Linux:
 
 ```bash
-curl -fsSL [https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/install.sh](https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/install.sh) | sudo bash
+curl -fsSL https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/install.sh | sudo bash
 ```
 
 Manage the background service on Linux:
@@ -84,7 +84,7 @@ Download the prebuilt static binary for your platform from the latest release:
 Linux (x86_64 / amd64):
 
 ```bash
-curl -fsSL [https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-amd64](https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-amd64) -o slyber_test
+curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-amd64 -o slyber_test
 chmod +x slyber_test
 ./slyber_test -addr 0.0.0.0:8095
 ```
@@ -92,7 +92,7 @@ chmod +x slyber_test
 Linux (ARM64 / aarch64):
 
 ```bash
-curl -fsSL [https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-arm64](https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-arm64) -o slyber_test
+curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-linux-arm64 -o slyber_test
 chmod +x slyber_test
 ./slyber_test -addr 0.0.0.0:8095
 ```
@@ -100,7 +100,7 @@ chmod +x slyber_test
 macOS (Apple Silicon M1/M2/M3/M4):
 
 ```bash
-curl -fsSL [https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-darwin-arm64](https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-darwin-arm64) -o slyber_test
+curl -fsSL https://github.com/slyber-app/slyber-inspector/releases/latest/download/slyber_test-darwin-arm64 -o slyber_test
 chmod +x slyber_test
 ./slyber_test -addr 127.0.0.1:8095
 ```
@@ -136,6 +136,31 @@ Environment variables:
 - **Scenario 3 — Webinar & Simulcast/SVC Tiers**: Streams 3 simultaneous quality layers (`s2` 1080p, `s1` 480p, `s0` 180p) to 3 independent viewers with interactive network throttlers (`Auto-BWE` TWCC/GCC simulation or manual layer overrides).
 - **Scenario 4 — Full-Duplex AI Voice Pipe & VAD Barge-In**: Tests `/ai/ws` both in Simple Synth mode and in Multiplexed Multi-Bot Gemini Live mode (up to 6 ordered AI agents with custom voices, languages, roles, drag-and-drop speaking order, token usage counters, live transcript, and real microphone RFC 6464 VAD barge-in interruption).
 - **Scenario 5 — Gateways & 6-Point RFC Security Audit**: Executes live protocol verification against `/whip/` & `/whep/` endpoints, `/moq/` (`moqt-draft-22`) relay packaging, `/ai/` Opus injection, and a 6-point security audit covering STUN HMAC, DTLS 1.2 ECDHE, Unified Plan SDP BUNDLE separation, SFrame E2EE MLS key ratcheting, Cascade Pipe SSRF filters, and `/inspector/stats` telemetry.
+
+## 7. Uninstallation
+
+### Linux (systemd service & binary)
+
+Run the one line uninstaller to stop the service and remove `/usr/local/bin/slyber_test`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/uninstall.sh | sudo bash
+```
+
+To also remove the `slyber_test` system user:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/slyber-app/slyber-inspector/main/uninstall.sh | sudo env PURGE_DATA=true bash
+```
+
+### Docker
+
+Stop and remove the running container and local image:
+
+```bash
+sudo docker rm -f slyber_test
+sudo docker rmi ghcr.io/slyber-app/slyber-inspector:latest
+```
 
 ---
 
