@@ -24,11 +24,19 @@ Designed as a standalone, zero-dependency static Go binary with an embedded web 
 Run the visual test environment in a single command:
 
 ```bash
-sudo docker run -d \
+docker pull ghcr.io/slyber-app/slyber-inspector:latest
+docker rm -f slyber_test 2>/dev/null || true
+
+PORT=8095; while (ss -ltn 2>/dev/null || lsof -iTCP -sTCP:LISTEN -P -n 2>/dev/null) | grep -q ":${PORT}\b"; do PORT=$((PORT+1)); done; \
+
+docker run -d \
   --name slyber_test \
   --restart unless-stopped \
-  -p 8095:8095 \
-  ghcr.io/slyber-app/slyber-inspector:latest
+  -p "${PORT}:8095" \
+  -e LISTEN_ADDR="0.0.0.0:8095" \
+  ghcr.io/slyber-app/slyber-inspector:latest && \
+  HOST_IP=$([ -n "${SSH_CONNECTION:-}" ] && curl -fsSL4 --max-time 2 ifconfig.me 2>/dev/null || echo 127.0.0.1) && \
+  echo "==> Open Slyber Inspector: http://${HOST_IP}:${PORT}"
 ```
 
 Open `http://127.0.0.1:8095` (or `http://<SERVER_IP>:8095`) in your browser.
